@@ -1,1 +1,1 @@
-# MNSIT
+Developed and trained an AI model for handwritten digit recognition using the MNIST dataset. The model effectively learned to classify digits (0–9) based on pixel intensity features, achieving high accuracy through rigorous training and validation. Demonstrated strong applicability in optical character recognition and real-time digit classification tasks.
