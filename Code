@@ -1,40 +1,87 @@
-from sklearn.datasets import fetch_openml
+import tensorflow as tf
+from tensorflow import keras
 import matplotlib.pyplot as plt
-import matplotlib.cm
-import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
-mnist=fetch_openml("mnist_784", version=1, as_frame=False)
-print(mnist.keys())
-# print("Shape of data:", mnist.data.shape)    # (70000, 784)
-# print("Shape of target:", mnist.target.shape) # (70000,)
-
-# print("First image data (flattened):", mnist.data[0])
-# print("First label:", mnist.target[0])
-x,y=mnist["data"],mnist["target"]
-# print(x[0])
 # %matplotlib inline
-digit=x[36000]
-# digit_img=digit.reshape(28,28)
-# plt.imshow(digit_img,cmap=matplotlib.cm.binary,interpolation="nearest")
-# print(y[3600])
-# plt.axis('off')
-# plt.show()
-xtrain,xtest=x[:60000],x[60000:]
-ytrain,ytest=y[:60000],y[60000:]
-shuffle_index=np.random.permutation(60000)
-xtrain,ytrain=xtrain[shuffle_index],ytrain[shuffle_index]
+import numpy as np
 
-#2 detector
-ytrain=ytrain.astype(np.int8)
-ytest=ytest.astype(np.int8)
-ytrain2=(ytrain==2)
-ytest2=(ytest==2)
-claf=LogisticRegression(tol=0.1)
-claf.fit(xtrain,ytrain2)
-claf.predict([digit])
-print(claf.predict([digit]))
-a=cross_val_score(claf,xtrain,ytrain2,cv=3,scoring="accuracy")
-print(a.mean())
+(X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data()
+len(X_train)
+len(X_test)
+X_train[0].shape
+X_train[0]
+plt.matshow(X_train[0])
+y_train[0]
 
+X_train = X_train / 255
+X_test = X_test / 255
+X_train[0]
 
+X_train_flattened = X_train.reshape(len(X_train), 28*28)
+X_test_flattened = X_test.reshape(len(X_test), 28*28)
+X_train_flattened.shape
+X_train_flattened[0]
+
+# Very simple neural network with no hidden layers
+model = keras.Sequential([
+    keras.layers.Dense(10, input_shape=(784,), activation='sigmoid')
+])
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(X_train_flattened, y_train, epochs=5)
+model.evaluate(X_test_flattened, y_test)
+
+y_predicted = model.predict(X_test_flattened)
+y_predicted[0]
+plt.matshow(X_test[0])
+np.argmax(y_predicted[0])
+
+y_predicted_labels = [np.argmax(i) for i in y_predicted]
+y_predicted_labels[:5]
+
+cm = tf.math.confusion_matrix(labels=y_test, predictions=y_predicted_labels)
+cm
+
+import seaborn as sn
+plt.figure(figsize=(10,7))
+sn.heatmap(cm, annot=True, fmt='d')
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+
+# Using hidden layer
+model = keras.Sequential([
+    keras.layers.Dense(100, input_shape=(784,), activation='relu'),
+    keras.layers.Dense(10, activation='sigmoid')
+])
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(X_train_flattened, y_train, epochs=5)
+model.evaluate(X_test_flattened, y_test)
+
+y_predicted = model.predict(X_test_flattened)
+y_predicted_labels = [np.argmax(i) for i in y_predicted]
+cm = tf.math.confusion_matrix(labels=y_test, predictions=y_predicted_labels)
+
+plt.figure(figsize=(10,7))
+sn.heatmap(cm, annot=True, fmt='d')
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+
+# Using Flatten layer instead of reshaping input manually
+model = keras.Sequential([
+    keras.layers.Flatten(input_shape=(28, 28)),
+    keras.layers.Dense(100, activation='relu'),
+    keras.layers.Dense(10, activation='sigmoid')
+])
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(X_train, y_train, epochs=10)
+model.evaluate(X_test, y_test)
