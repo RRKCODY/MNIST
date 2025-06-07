@@ -1,0 +1,40 @@
+from sklearn.datasets import fetch_openml
+import matplotlib.pyplot as plt
+import matplotlib.cm
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+mnist=fetch_openml("mnist_784", version=1, as_frame=False)
+print(mnist.keys())
+# print("Shape of data:", mnist.data.shape)    # (70000, 784)
+# print("Shape of target:", mnist.target.shape) # (70000,)
+
+# print("First image data (flattened):", mnist.data[0])
+# print("First label:", mnist.target[0])
+x,y=mnist["data"],mnist["target"]
+# print(x[0])
+# %matplotlib inline
+digit=x[36000]
+# digit_img=digit.reshape(28,28)
+# plt.imshow(digit_img,cmap=matplotlib.cm.binary,interpolation="nearest")
+# print(y[3600])
+# plt.axis('off')
+# plt.show()
+xtrain,xtest=x[:60000],x[60000:]
+ytrain,ytest=y[:60000],y[60000:]
+shuffle_index=np.random.permutation(60000)
+xtrain,ytrain=xtrain[shuffle_index],ytrain[shuffle_index]
+
+#2 detector
+ytrain=ytrain.astype(np.int8)
+ytest=ytest.astype(np.int8)
+ytrain2=(ytrain==2)
+ytest2=(ytest==2)
+claf=LogisticRegression(tol=0.1)
+claf.fit(xtrain,ytrain2)
+claf.predict([digit])
+print(claf.predict([digit]))
+a=cross_val_score(claf,xtrain,ytrain2,cv=3,scoring="accuracy")
+print(a.mean())
+
+
